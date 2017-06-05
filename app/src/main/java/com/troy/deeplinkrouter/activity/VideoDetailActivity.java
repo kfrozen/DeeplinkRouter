@@ -6,8 +6,8 @@ import android.widget.TextView;
 import com.troy.deeplinkrouter.R;
 import com.troy.dprouter.annotation.ActivityRouter;
 
-@ActivityRouter(hosts = {"game", "video", "team"})
-public class DetailActivity extends BaseRouterActivity
+@ActivityRouter(hosts = {"videos"})
+public class VideoDetailActivity extends BaseRouterActivity
 {
     private TextView mContent;
 
@@ -16,7 +16,7 @@ public class DetailActivity extends BaseRouterActivity
     {
         super.onCreate(savedInstanceState);
 
-        setTitle("Details");
+        setTitle("Video Details");
 
         setContentView(R.layout.activity_detail);
 

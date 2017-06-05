@@ -12,12 +12,12 @@
     </item>
     <item
         is-multidex="false"
-        jar="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/dprouter-annotation/build/libs/dprouter-annotation.jar"
+        jar="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/dprouter-annotation/build/libs/dprouter-annotation-1.0.0.jar"
         jumboMode="false"
         optimize="true"
         revision="25.0.2"
-        sha1="089b219e803f7014f539e9704a1556d1594348af">
-        <dex dex="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/app/build/intermediates/pre-dexed/debug/dprouter-annotation_99b95598dec193e7aedf0fc1db3a4e5bb0755e27.jar" />
+        sha1="9bcc7567ff906126f21af9fe4a374cb88a364d06">
+        <dex dex="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/app/build/intermediates/pre-dexed/debug/dprouter-annotation-1.0.0_645fedf71d28b776bd1c1bd19b43fd6002325cc2.jar" />
     </item>
 
 </items>

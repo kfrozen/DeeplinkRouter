@@ -32,7 +32,7 @@
 
         <activity android:name=".activity.UserActivity"/>
 
-        <activity android:name=".activity.DetailActivity"/>
+        <activity android:name=".activity.VideoDetailActivity"/>
 
         <activity android:name=".activity.SignInActivity"/>
     </application>
