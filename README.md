@@ -143,7 +143,7 @@ Then, based on the launch mode of your activity, dispatch the uri down to the fr
 
         if(deeplinkUri == null) return;
 
-        NLRouter.linkToFragment(this, deeplinkUri, this);
+        DPRouter.linkToFragment(this, deeplinkUri, this);
     }
 ```
 
