@@ -28,6 +28,6 @@ dependencies {
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
 
-    compile project(':dprouter-api')//'com.neulion.android:nlrouter-api:1.0.0-SNAPSHOT'
-    annotationProcessor project(':dprouter-compiler')//'com.neulion.android:nlrouter-compiler:1.0.0-SNAPSHOT'
+    compile project(':dprouter-api')
+    annotationProcessor project(':dprouter-compiler')
 }
