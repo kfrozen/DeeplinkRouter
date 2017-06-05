@@ -1,0 +1,1 @@
+include ':app', ':dprouter-annotation', ':dprouter-compiler', ':dprouter-api'

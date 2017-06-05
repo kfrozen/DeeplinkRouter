@@ -1,0 +1,31 @@
+apply plugin: 'java'
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+ext {
+    bintrayRepo = BINTRAY_REPO
+    bintrayName = BINTRAY_NAME
+
+    publishedGroupId = PUBLISHED_GROUP_ID
+    libraryName = LIBRARY_NAME
+    artifact = ARTIFACT
+
+    libraryDescription = LIBRARY_DESCRIPTION
+
+    siteUrl = SITE_URL
+    gitUrl = GIT_URL
+
+    libraryVersion = LIBRARY_VERSION
+    developerId = DEVELOPER_ID
+    developerName = DEVELOPER_NAME
+    developerEmail = DEVELOPER_EMAIL
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"

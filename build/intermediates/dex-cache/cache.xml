@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="false"
+        jar="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/dprouter-api/build/intermediates/bundles/default/classes.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="25.0.2"
+        sha1="f3210b9adc4a938993dd738f8366e36ae3d421aa">
+        <dex dex="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/app/build/intermediates/pre-dexed/debug/classes_c4fd923d242731b3997b1e7deb2db6b2d37dcad6.jar" />
+    </item>
+    <item
+        is-multidex="false"
+        jar="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/dprouter-annotation/build/libs/dprouter-annotation.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="25.0.2"
+        sha1="089b219e803f7014f539e9704a1556d1594348af">
+        <dex dex="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/app/build/intermediates/pre-dexed/debug/dprouter-annotation_99b95598dec193e7aedf0fc1db3a4e5bb0755e27.jar" />
+    </item>
+
+</items>
