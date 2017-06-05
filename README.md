@@ -21,6 +21,7 @@ In your app module's build.gradle file
     annotationProcessor 'com.troy.deeplinkrouter:dprouter-compiler:1.0.0'
 ```
 
+**Note:** You may try the attached deeplinkRouter_test_urls.html to test the demo app, several sample links have been included.
 
 <a name="#integration-guide"></a>
 ## Integration Guide
