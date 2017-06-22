@@ -32,11 +32,5 @@
     <orderEntry type="library" exported="" name="auto-service-1.0-rc3" level="project" />
     <orderEntry type="library" exported="" name="auto-common-0.3" level="project" />
     <orderEntry type="library" exported="" name="guava-19.0" level="project" />
-    <orderEntry type="library" exported="" name="dprouter-compiler.dprouter-compiler-1.0.0" level="project" />
-    <orderEntry type="library" exported="" name="dprouter-compiler.dprouter-compiler-1.0.0-javadoc" level="project" />
-    <orderEntry type="library" exported="" name="dprouter-compiler.dprouter-compiler-1.0.0-sources" level="project" />
-    <orderEntry type="library" exported="" name="dprouter-compiler.dprouter-compiler-1.0.0" level="project" />
-    <orderEntry type="library" exported="" name="dprouter-compiler.dprouter-compiler-1.0.0" level="project" />
-    <orderEntry type="library" exported="" name="dprouter-compiler.dprouter-compiler-1.0.0" level="project" />
   </component>
 </module>

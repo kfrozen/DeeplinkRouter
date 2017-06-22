@@ -66,9 +66,48 @@ public class DPRouter
         if(!mFragmentMappings.contains(mapping)) mFragmentMappings.add(mapping);
     }
 
+    public static Intent resolve(Context context, @NonNull Uri uri)
+    {
+        smartInit();
+
+        String url = uri.toString();
+
+        for (Mapping mapping : mActivityMappings)
+        {
+            if (mapping.isMatched(url))
+            {
+                Intent intent = new Intent();
+
+                intent.setClass(context, mapping.getTargetActivity());
+
+                intent.setData(uri);
+
+                intent.putExtras(mapping.parseExtras(url));
+
+                if(!(context instanceof Activity))
+                {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                }
+
+                return intent;
+            }
+        }
+
+        return null;
+    }
+
     public static boolean linkToActivity(Context context, @NonNull Uri uri)
     {
         smartInit();
+
+        IDPRouterInterceptor interceptor = getGlobalInterceptor(context);
+
+        if(interceptor != null)
+        {
+            uri = interceptor.onPreRouting(context, uri);
+
+            if(uri == null) return false;
+        }
 
         String url = uri.toString();
 
@@ -210,6 +249,16 @@ public class DPRouter
 
             mPendingRoutingJobs.clear();
         }
+    }
+
+    private static IDPRouterInterceptor getGlobalInterceptor(Context context)
+    {
+        if(context.getApplicationContext() instanceof IDPRouterInterceptor)
+        {
+            return (IDPRouterInterceptor) context.getApplicationContext();
+        }
+
+        return null;
     }
 
     private static class FragmentRoutingJob implements Runnable

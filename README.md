@@ -1,6 +1,6 @@
 ## DeeplinkRouter Developers Guide ##
 
-**Version 1.0.0**
+**Version 1.0.1**
 
 - [Introduction](#introduction)
 - [Usage](#usage)
@@ -16,9 +16,9 @@ DeeplinkRouter makes it much easier to handle deeplink flow and navigation betwe
 
 In your app module's build.gradle file
 ```
-    compile 'com.troy.deeplinkrouter:dprouter-api:1.0.0'
+    compile 'com.troy.deeplinkrouter:dprouter-api:1.0.1'
 
-    annotationProcessor 'com.troy.deeplinkrouter:dprouter-compiler:1.0.0'
+    annotationProcessor 'com.troy.deeplinkrouter:dprouter-compiler:1.0.1'
 ```
 
 **Note:** You may try the attached deeplinkRouter_test_urls.html to test the demo app, several sample links have been included.
@@ -192,5 +192,25 @@ Here's an implementation example:
         return true;
     }
 ```
+
+**Interceptor**
+
+A global interceptor can be applied by implementing the IDPRouterInterceptor in your own Application class.
+
+Here you have a chance to modify the uri, or even drop the routing request by returning a **null** in onPreRouting method.
+
+```
+    public class RouterApplication extends Application implements IDPRouterInterceptor
+    {
+        @Override
+        public Uri onPreRouting(Context context, Uri uri)
+        {
+            Toast.makeText(context, "Pre Routing", Toast.LENGTH_SHORT).show();
+
+            return uri;
+        }
+    }
+```
+
 
 For more integration details and usages, please refer to the demo.
