@@ -6,7 +6,9 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import com.troy.dprouter.annotation.ActivityRouter;
+import com.troy.dprouter.annotation.AllModules;
 import com.troy.dprouter.annotation.FragmentRouter;
+import com.troy.dprouter.annotation.Module;
 
 import java.lang.annotation.Annotation;
 import java.util.LinkedHashSet;
@@ -28,6 +30,12 @@ import javax.tools.Diagnostic.Kind;
 @AutoService(Processor.class)
 public class DeeplinkRouterProcessor extends AbstractProcessor
 {
+    private static final String METHOD_NAME_INIT = "init";
+    private static final String BASE_MODULE_MAPPING_CLASS_NAME = "RouterMapping";
+    private static final String ROUTER_INIT_CLASS_NAME = "RouterInit";
+    private static final String ROUTER_INIT_INTERFACE_NAME = "IDPRouterInit";
+    private static final String ROUTER_API_PACKAGE_NAME = "com.troy.dprouter.api";
+
     private Messager mMessager;
     private Filer mFiler;
 
@@ -66,16 +74,111 @@ public class DeeplinkRouterProcessor extends AbstractProcessor
             return false;
         }
 
-        MethodSpec.Builder initMethodBuilder = MethodSpec.methodBuilder("init")
+        boolean hasAllModulesAnnotation = false;
+        boolean hasModuleAnnotation = false;
+
+        //******** Parse AllModules annotation *************//
+        String[] moduleNames = null;
+
+        Set<? extends Element> allModulesElements = roundEnv.getElementsAnnotatedWith(AllModules.class);
+
+        if(allModulesElements != null && !allModulesElements.isEmpty())
+        {
+            AllModules allModules = allModulesElements.iterator().next().getAnnotation(AllModules.class);
+
+            moduleNames = allModules.moduleNames();
+
+            hasAllModulesAnnotation = true;
+        }
+        //******** Parse AllModules annotation ends*************//
+
+        //******** Parse Module annotation *************//
+        String genClassName = BASE_MODULE_MAPPING_CLASS_NAME;
+
+        Set<? extends Element> moduleElements = roundEnv.getElementsAnnotatedWith(Module.class);
+
+        if(moduleElements != null && !moduleElements.isEmpty())
+        {
+            Module module = moduleElements.iterator().next().getAnnotation(Module.class);
+
+            genClassName = genClassName + "_" + module.name();
+
+            hasModuleAnnotation = true;
+        }
+        //******** Parse Module annotation ends*************//
+
+        if(hasAllModulesAnnotation) //Main module, defines all the other modules, generate a main init class that will invoke all the module mapping class
+        {
+            generateRouterInitWithModules(moduleNames);
+        }
+        else if(!hasModuleAnnotation) //The project only has a single module, generate a default init class
+        {
+            generateRouterInitByDefault();
+        }
+
+        //This is a child module, so just generate its own mapping class, no init class needed here
+        return generateModuleMapping(genClassName, roundEnv);
+    }
+
+    private void generateRouterInitWithModules(String[] moduleNames)
+    {
+        MethodSpec.Builder initMethodBuilder = MethodSpec.methodBuilder(METHOD_NAME_INIT)
                 .addModifiers(Modifier.PUBLIC).addAnnotation(Override.class);
 
-        initMethodBuilder.addCode("\n");
+        for(String name : moduleNames)
+        {
+            if(name == null || "".equalsIgnoreCase(name))
+            {
+                continue;
+            }
+
+            initMethodBuilder.addStatement(BASE_MODULE_MAPPING_CLASS_NAME + "_" + name + ".init()");
+        }
+
+        innerGenerateRouterInit(initMethodBuilder);
+    }
+
+    private void generateRouterInitByDefault()
+    {
+        MethodSpec.Builder initMethodBuilder = MethodSpec.methodBuilder(METHOD_NAME_INIT)
+                .addModifiers(Modifier.PUBLIC).addAnnotation(Override.class);
+
+        initMethodBuilder.addStatement(BASE_MODULE_MAPPING_CLASS_NAME + ".init()");
+
+        innerGenerateRouterInit(initMethodBuilder);
+    }
+
+    private void innerGenerateRouterInit(MethodSpec.Builder methodBuilder)
+    {
+        TypeSpec routerInit = TypeSpec.classBuilder(ROUTER_INIT_CLASS_NAME)
+                .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                .addSuperinterface(ClassName.get(ROUTER_API_PACKAGE_NAME, ROUTER_INIT_INTERFACE_NAME))
+                .addMethod(methodBuilder.build())
+                .build();
+        try
+        {
+            JavaFile.builder(ROUTER_API_PACKAGE_NAME, routerInit)
+                    .build()
+                    .writeTo(mFiler);
+        }
+        catch (Exception e)
+        {
+            error("Failed to generate file %s", routerInit.name);
+        }
+    }
+
+    private boolean generateModuleMapping(String genClassName, RoundEnvironment roundEnv)
+    {
+        MethodSpec.Builder moduleInitBuilder = MethodSpec.methodBuilder(METHOD_NAME_INIT)
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+
+        moduleInitBuilder.addCode("\n");
 
         try
         {
-            processRouters(ActivityRouter.class, roundEnv.getElementsAnnotatedWith(ActivityRouter.class), initMethodBuilder);
+            processRouters(ActivityRouter.class, roundEnv.getElementsAnnotatedWith(ActivityRouter.class), moduleInitBuilder);
 
-            processRouters(FragmentRouter.class, roundEnv.getElementsAnnotatedWith(FragmentRouter.class), initMethodBuilder);
+            processRouters(FragmentRouter.class, roundEnv.getElementsAnnotatedWith(FragmentRouter.class), moduleInitBuilder);
         }
         catch (IllegalArgumentException e)
         {
@@ -84,30 +187,24 @@ public class DeeplinkRouterProcessor extends AbstractProcessor
             return true;
         }
 
-        TypeSpec routerInit = TypeSpec.classBuilder("RouterInit")
+        TypeSpec moduleInit = TypeSpec.classBuilder(genClassName)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                .addSuperinterface(ClassName.get("com.troy.dprouter.api", "IDPRouterInit"))
-                .addMethod(initMethodBuilder.build())
+                .addMethod(moduleInitBuilder.build())
                 .build();
         try
         {
-            JavaFile.builder("com.troy.dprouter.api", routerInit)
+            JavaFile.builder(ROUTER_API_PACKAGE_NAME, moduleInit)
                     .build()
                     .writeTo(mFiler);
         }
         catch (Exception e)
         {
-            error("Failed to generate file %s", routerInit.name);
+            error("Failed to generate file %s", moduleInit.name);
 
             return true;
         }
 
         return true;
-    }
-
-    private void error(String msg, Object... args)
-    {
-        mMessager.printMessage(Kind.ERROR, args == null ? msg : String.format(msg, args));
     }
 
     private MethodSpec.Builder processRouters(Class<? extends Annotation> routerClass, Set<? extends Element> elements, MethodSpec.Builder methodBuilder)
@@ -217,4 +314,10 @@ public class DeeplinkRouterProcessor extends AbstractProcessor
 
         return methodBuilder;
     }
+
+    private void error(String msg, Object... args)
+    {
+        mMessager.printMessage(Kind.ERROR, args == null ? msg : String.format(msg, args));
+    }
+
 }

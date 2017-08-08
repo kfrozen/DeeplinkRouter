@@ -5,20 +5,24 @@
 - [Introduction](#introduction)
 - [Usage](#usage)
 - [Integration Guide](#integration-guide)
+    - [Route to Activity](#activity)
+    - [Route to Fragment](#fragment)
+    - [Global Interceptor](#interceptor)
+    - [Multiple modules](#modules)
 
 <a name="#introduction"></a>
 ## Introduction
 
-DeeplinkRouter makes it much easier to handle deeplink flow and navigation between activity/fragment by applying custom annotations.
+DeeplinkRouter makes it much easier to handle deeplink flow and navigation between activity/fragment by applying custom annotations. Now support navigation between different modules.
 
 <a name="#usage"></a>
 ## Usage
 
 In your app module's build.gradle file
 ```
-    compile 'com.troy.deeplinkrouter:dprouter-api:1.0.1'
+    compile 'com.troy.deeplinkrouter:dprouter-api:1.0.2'
 
-    annotationProcessor 'com.troy.deeplinkrouter:dprouter-compiler:1.0.1'
+    annotationProcessor 'com.troy.deeplinkrouter:dprouter-compiler:1.0.2'
 ```
 
 **Note:** You may try the attached deeplinkRouter_test_urls.html to test the demo app, several sample links have been included.
@@ -59,6 +63,7 @@ So LaunchDispatcherActivity will be the entrance for all the deeplink uri, and i
     }
 ```
 
+<a name="#activity"></a>
 - **Route to Activity**
 
 Apply @ActivityRouter to your target activity, inside which **"hosts"** represents for a set of uri hosts this activity will response to, and **"params"**, which in format of "key=value", represents for the parameter filter. With the filter, a host can be shared by various targets as long as they have different param filter.
@@ -96,6 +101,7 @@ Inside the target activity, you can fetch the query params by this way:
     String teamName = extras.getString("teamname");
 ```
 
+<a name="#fragment"></a>
 - **Route to Fragment**
 
 Apply @FragmentRouter to your target Fragment, same definitions for **"hosts"** and **"params"** here
@@ -193,6 +199,7 @@ Here's an implementation example:
     }
 ```
 
+<a name="#interceptor"></a>
 **Interceptor**
 
 A global interceptor can be applied by implementing the IDPRouterInterceptor in your own Application class.
@@ -212,5 +219,43 @@ Here you have a chance to modify the uri, or even drop the routing request by re
     }
 ```
 
+<a name="#modules"></a>
+**Multiple Modules support**
+
+Two new annotations have been provided now: **Module** and **AllModules**
+
+If your project had multiple modules, for each module, annotate one of the classes (just one will be enough) with annotation **Module** to indicate the module name, like this:
+
+```
+    @Module(name = "module_a")
+    public class ModuleApplication extends Application
+    {
+    }
+```
+
+Then in your host module, annotate one of the classes (still, one is enough) with annotation **AllModules** to indicate all the support modules, note that the module names cannot be duplicated. Example:
+
+```
+    @AllModules(moduleNames = {"app", "module_a", "module_b"})
+    @Module(name = "app")
+    public class RouterApplication extends Application implements IDPRouterInterceptor
+```
+
+Finally, for each module including host and child modules, you need to add dependence for dprouter compiler in module's build.gradle file, like this:
+
+```
+    child module's build.gradle:
+
+            compile project(':dprouter-api')
+            annotationProcessor project(':dprouter-compiler')
+
+    host module's build.gradle:
+
+                compile project(':childmodule_a')
+                compile project(':childmodule_b')
+                annotationProcessor project(':dprouter-compiler')
+```
+
+You are all set for the multiple modules routing.
 
 For more integration details and usages, please refer to the demo.

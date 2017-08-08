@@ -1,1 +1,1 @@
-include ':app', ':dprouter-annotation', ':dprouter-compiler', ':dprouter-api'
+include ':app', ':dprouter-annotation', ':dprouter-compiler', ':dprouter-api', ':childmodule_a', ':childmodule_b'
