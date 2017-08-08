@@ -1,6 +1,6 @@
 ## DeeplinkRouter Developers Guide ##
 
-**Version 1.0.1**
+**Version 1.0.2**
 
 - [Introduction](#introduction)
 - [Usage](#usage)
