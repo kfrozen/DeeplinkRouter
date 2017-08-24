@@ -1,14 +1,16 @@
 ## DeeplinkRouter Developers Guide ##
 
-**Version 1.0.2**
+**Version 1.0.3**
 
 - [Introduction](#introduction)
 - [Usage](#usage)
 - [Integration Guide](#integration-guide)
-    - [Route to Activity](#activity)
-    - [Route to Fragment](#fragment)
-    - [Global Interceptor](#interceptor)
-    - [Multiple modules](#modules)
+    - Route to Activity
+    - Route to Fragment
+    - Global Interceptor
+    - Multiple modules
+    - Parent Activity
+    - Dispatch to child Fragments
 
 <a name="#introduction"></a>
 ## Introduction
@@ -20,9 +22,9 @@ DeeplinkRouter makes it much easier to handle deeplink flow and navigation betwe
 
 In your app module's build.gradle file
 ```
-    compile 'com.troy.deeplinkrouter:dprouter-api:1.0.2'
+    compile 'com.troy.deeplinkrouter:dprouter-api:1.0.3'
 
-    annotationProcessor 'com.troy.deeplinkrouter:dprouter-compiler:1.0.2'
+    annotationProcessor 'com.troy.deeplinkrouter:dprouter-compiler:1.0.3'
 ```
 
 **Note:** You may try the attached deeplinkRouter_test_urls.html to test the demo app, several sample links have been included.
@@ -63,7 +65,6 @@ So LaunchDispatcherActivity will be the entrance for all the deeplink uri, and i
     }
 ```
 
-<a name="#activity"></a>
 - **Route to Activity**
 
 Apply @ActivityRouter to your target activity, inside which **"hosts"** represents for a set of uri hosts this activity will response to, and **"params"**, which in format of "key=value", represents for the parameter filter. With the filter, a host can be shared by various targets as long as they have different param filter.
@@ -101,7 +102,6 @@ Inside the target activity, you can fetch the query params by this way:
     String teamName = extras.getString("teamname");
 ```
 
-<a name="#fragment"></a>
 - **Route to Fragment**
 
 Apply @FragmentRouter to your target Fragment, same definitions for **"hosts"** and **"params"** here
@@ -199,8 +199,7 @@ Here's an implementation example:
     }
 ```
 
-<a name="#interceptor"></a>
-**Interceptor**
+- **Interceptor**
 
 A global interceptor can be applied by implementing the IDPRouterInterceptor in your own Application class.
 
@@ -219,8 +218,7 @@ Here you have a chance to modify the uri, or even drop the routing request by re
     }
 ```
 
-<a name="#modules"></a>
-**Multiple Modules support**
+- **Multiple Modules support**
 
 Two new annotations have been provided now: **Module** and **AllModules**
 
@@ -257,5 +255,40 @@ Finally, for each module including host and child modules, you need to add depen
 ```
 
 You are all set for the multiple modules routing.
+
+- **Parent Activity support**
+
+For detail activities opened through deeplink, you may wish to navigate back a pre-defined activity (MainActivity for example) when user tap on back button instead of just exiting the app.
+
+Now you can do this by defining your parent Activity in annotation **ActivityRouter**. Set **parentActivityHost()** to your parent Activity's host, for example:
+
+```
+    @ActivityRouter(hosts = {"user"}, parentActivityHost = "main")
+    public class UserActivity extends BaseRouterActivity
+```
+
+And just leave this field as blank if the target Activity did not need a parent Activity.
+
+Then inside your base Activity, BaseRouterActivity for instance, override the **finish()** method like this:
+
+```
+    @Override
+    public void finish()
+    {
+        DPRouter.preFinish(this, RouterApplication.APP_SCHEME);
+
+        super.finish();
+    }
+```
+
+- **Dispatch to child Fragment**
+
+There's a new field added to **@FragmentRouter** annotation called **isMasterFragment()**, which will return a boolean value (default to false).
+
+This is to support dispatching deeplink action one step more to the child fragment that held by its master fragment(the one directly held by Activity). Thus for the fragments directly held by Activity, set **isMasterFragment()** to true inside the @FragmentRouter annotation.
+
+To dispatch deeplink action from fragment, just follow the same way that activity does in your base fragment, please see detail usage for this in the demo: com.troy.deeplinkrouter.fragment.BaseFragment
+
+**Note that there's a little change in DPRouter.linkToFragment() method, we updated the type of the first param from FragmentActivity to FragmentManager, which means for dispatching from Activity, getSupportFragmentManager() should be applied while for dispatching from Fragment, use getChildFragmentManager().**
 
 For more integration details and usages, please refer to the demo.
