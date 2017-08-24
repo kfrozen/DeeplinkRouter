@@ -270,13 +270,17 @@ public class DeeplinkRouterProcessor extends AbstractProcessor
                         throw new IllegalArgumentException("Router host cannot end with '/'");
                     }
 
+                    boolean isMasterFragment = router.isMasterFragment();
+
                     if (hasParams)
                     {
-                        methodBuilder.addStatement("com.troy.dprouter.api.DPRouter.mapFragment($S, $T.class, $N)", host, className, paramFilterName);
+                        methodBuilder.addStatement("com.troy.dprouter.api.DPRouter.mapFragment($S, $T.class, $N, $L)",
+                                host, className, paramFilterName, isMasterFragment);
                     }
                     else
                     {
-                        methodBuilder.addStatement("com.troy.dprouter.api.DPRouter.mapFragment($S, $T.class, null)", host, className);
+                        methodBuilder.addStatement("com.troy.dprouter.api.DPRouter.mapFragment($S, $T.class, null, $L)",
+                                host, className, isMasterFragment);
                     }
 
                     methodBuilder.addCode("\n");
@@ -285,6 +289,8 @@ public class DeeplinkRouterProcessor extends AbstractProcessor
             else if(ActivityRouter.class.equals(routerClass))
             {
                 ActivityRouter router = element.getAnnotation(ActivityRouter.class);
+
+                String parentActivityHost = router.parentActivityHost();
 
                 for (String host : router.hosts())
                 {
@@ -298,13 +304,31 @@ public class DeeplinkRouterProcessor extends AbstractProcessor
                         throw new IllegalArgumentException("Router host cannot end with '/'");
                     }
 
-                    if (hasParams)
+                    if(!"".equalsIgnoreCase(parentActivityHost))
                     {
-                        methodBuilder.addStatement("com.troy.dprouter.api.DPRouter.mapActivity($S, $T.class, $N)", host, className, paramFilterName);
+                        if (hasParams)
+                        {
+                            methodBuilder.addStatement("com.troy.dprouter.api.DPRouter.mapActivity($S, $T.class, $N, $S)",
+                                    host, className, paramFilterName, parentActivityHost);
+                        }
+                        else
+                        {
+                            methodBuilder.addStatement("com.troy.dprouter.api.DPRouter.mapActivity($S, $T.class, null, $S)",
+                                    host, className, parentActivityHost);
+                        }
                     }
                     else
                     {
-                        methodBuilder.addStatement("com.troy.dprouter.api.DPRouter.mapActivity($S, $T.class, null)", host, className);
+                        if (hasParams)
+                        {
+                            methodBuilder.addStatement("com.troy.dprouter.api.DPRouter.mapActivity($S, $T.class, $N)",
+                                    host, className, paramFilterName);
+                        }
+                        else
+                        {
+                            methodBuilder.addStatement("com.troy.dprouter.api.DPRouter.mapActivity($S, $T.class, null)",
+                                    host, className);
+                        }
                     }
 
                     methodBuilder.addCode("\n");

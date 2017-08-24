@@ -12,4 +12,6 @@ public @interface FragmentRouter
     String[] hosts();
 
     String[] params() default "";
+
+    boolean isMasterFragment() default false;
 }

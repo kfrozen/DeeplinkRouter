@@ -12,4 +12,6 @@ public @interface ActivityRouter
     String[] hosts() default "default";
 
     String[] params() default "";
+
+    String parentActivityHost() default "";
 }

@@ -7,7 +7,7 @@ import com.troy.deeplinkrouter.R;
 import com.troy.dprouter.annotation.ActivityRouter;
 
 
-@ActivityRouter(hosts = {"authenticate", "signin"})
+@ActivityRouter(hosts = {"authenticate", "signin"}, parentActivityHost = "main")
 public class SignInActivity extends BaseRouterActivity
 {
     private TextView mContent;

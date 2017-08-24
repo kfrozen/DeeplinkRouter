@@ -6,7 +6,7 @@ import android.widget.TextView;
 import com.troy.deeplinkrouter.R;
 import com.troy.dprouter.annotation.ActivityRouter;
 
-@ActivityRouter(hosts = {"user"})
+@ActivityRouter(hosts = {"user"}, parentActivityHost = "signin")
 public class UserActivity extends BaseRouterActivity
 {
     private TextView mContent;

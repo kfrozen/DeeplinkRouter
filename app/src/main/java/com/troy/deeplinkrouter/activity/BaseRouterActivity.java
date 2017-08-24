@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 
+import com.troy.deeplinkrouter.RouterApplication;
 import com.troy.dprouter.api.DPRouter;
 import com.troy.dprouter.api.DPRouter.INLFragmentRoutingCallback;
 
@@ -49,13 +50,21 @@ public abstract class BaseRouterActivity extends AppCompatActivity implements IN
         dispatchFragmentRouting();
     }
 
+    @Override
+    public void finish()
+    {
+        DPRouter.preFinish(this, RouterApplication.APP_SCHEME);
+
+        super.finish();
+    }
+
     private void dispatchFragmentRouting()
     {
         Uri deeplinkUri = getIntent().getData();
 
         if(deeplinkUri == null) return;
 
-        DPRouter.linkToFragment(this, deeplinkUri, this);
+        DPRouter.linkToFragment(getSupportFragmentManager(), deeplinkUri, this, true);
     }
 
     @Override

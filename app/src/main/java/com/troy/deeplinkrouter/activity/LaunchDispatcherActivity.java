@@ -19,7 +19,7 @@ public class LaunchDispatcherActivity extends AppCompatActivity
 
         Uri deeplinkUri = getIntent().getData();
 
-        DPRouter.linkToActivity(this, deeplinkUri == null ? Uri.parse(s_DEFAULT_URI_TO_MAIN) : deeplinkUri);
+        DPRouter.linkToActivity(this, deeplinkUri == null ? Uri.parse(s_DEFAULT_URI_TO_MAIN) : deeplinkUri, true);
 
         this.finish();
     }

@@ -14,14 +14,17 @@ import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
 public class DPRouter
 {
     private static ArrayList<Mapping> mActivityMappings = new ArrayList<>();
-    private static ArrayList<Mapping> mFragmentMappings = new ArrayList<>();
+    private static ArrayList<Mapping> mMasterFragmentMappings = new ArrayList<>();
+    private static ArrayList<Mapping> mChildFragmentMappings = new ArrayList<>();
     private static volatile ArrayList<Runnable> mPendingRoutingJobs = new ArrayList<>();
     private static boolean mIsRouterActive = true;
     private static final Object LOCK = new Object();
+    private static ArrayMap<Class<? extends Activity>, ActivityRoutingStatus> mActivityRoutingStatusMap = new ArrayMap<>();
 
     public static void setRouterActive(boolean active)
     {
@@ -35,7 +38,7 @@ public class DPRouter
 
     private static void smartInit()
     {
-        if(mActivityMappings.isEmpty() || mFragmentMappings.isEmpty())
+        if(mActivityMappings.isEmpty() || mMasterFragmentMappings.isEmpty() || mChildFragmentMappings.isEmpty())
         {
             try
             {
@@ -59,11 +62,68 @@ public class DPRouter
         if(!mActivityMappings.contains(mapping)) mActivityMappings.add(mapping);
     }
 
-    static void mapFragment(String host, Class<? extends Fragment> targetFragment, ArrayMap<String, String> paramsFilter)
+    static void mapActivity(String host, Class<? extends Activity> targetActivity, ArrayMap<String, String> paramsFilter, String parentActivityHost)
+    {
+        Mapping mapping = new Mapping(host, targetActivity, null, paramsFilter, parentActivityHost);
+
+        if(!mActivityMappings.contains(mapping)) mActivityMappings.add(mapping);
+    }
+
+    static void mapFragment(String host, Class<? extends Fragment> targetFragment, ArrayMap<String, String> paramsFilter, boolean isMaster)
     {
         Mapping mapping = new Mapping(host, null, targetFragment, paramsFilter);
 
-        if(!mFragmentMappings.contains(mapping)) mFragmentMappings.add(mapping);
+        if(isMaster)
+        {
+            if(!mMasterFragmentMappings.contains(mapping)) mMasterFragmentMappings.add(mapping);
+        }
+        else
+        {
+            if(!mChildFragmentMappings.contains(mapping)) mChildFragmentMappings.add(mapping);
+        }
+    }
+
+    public static void preFinish(@NonNull Activity caller, @NonNull String appScheme)
+    {
+        ActivityRoutingStatus activityRoutingStatus = mActivityRoutingStatusMap.get(caller.getClass());
+
+        if(activityRoutingStatus != null && activityRoutingStatus.isActivityLinkedByDeeplink && !TextUtils.isEmpty(activityRoutingStatus.parentActivityHost))
+        {
+            activityRoutingStatus.isActivityLinkedByDeeplink = false;
+
+            DPRouter.linkToActivity(caller, composeNavigationUri(appScheme, activityRoutingStatus.parentActivityHost, null, null), false);
+        }
+    }
+
+    public static Uri composeNavigationUri(String schemeString, String host, String path, ArrayMap<String, String> extras)
+    {
+        StringBuilder builder = new StringBuilder(schemeString).append("://").append(host);
+
+        if(!TextUtils.isEmpty(path))
+        {
+            builder.append("/").append(path);
+        }
+
+        if(extras != null && extras.size() > 0)
+        {
+            builder.append("?");
+
+            for(Entry<String, String> entry : extras.entrySet())
+            {
+                if(entry == null) continue;
+
+                builder.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
+            }
+        }
+
+        String result = builder.toString();
+
+        if(result.endsWith("?") || result.endsWith("&"))
+        {
+            result = result.substring(0, result.length() - 1);
+        }
+
+        return Uri.parse(result);
     }
 
     public static Intent resolve(Context context, @NonNull Uri uri)
@@ -96,7 +156,7 @@ public class DPRouter
         return null;
     }
 
-    public static boolean linkToActivity(Context context, @NonNull Uri uri)
+    public static boolean linkToActivity(Context context, @NonNull Uri uri, boolean isDeeplink)
     {
         smartInit();
 
@@ -117,7 +177,7 @@ public class DPRouter
         {
             if (mapping.isMatched(url))
             {
-                return innerStartActivity(context, mapping, uri, url);
+                return innerStartActivity(context, mapping, uri, url, isDeeplink);
             }
             else if (defaultMapping == null && mapping.isDefault())
             {
@@ -125,10 +185,10 @@ public class DPRouter
             }
         }
 
-        return defaultMapping != null && innerStartActivity(context, defaultMapping, uri, url);
+        return defaultMapping != null && innerStartActivity(context, defaultMapping, uri, url, isDeeplink);
     }
 
-    private static boolean innerStartActivity(Context context, Mapping mapping, Uri uri, String url)
+    private static boolean innerStartActivity(Context context, Mapping mapping, Uri uri, String url, boolean isDeeplink)
     {
         if(mapping.getTargetActivity() == null) return false;
 
@@ -147,37 +207,48 @@ public class DPRouter
 
         context.startActivity(intent);
 
+        ActivityRoutingStatus activityRoutingStatus = mActivityRoutingStatusMap.get(mapping.getTargetActivity());
+
+        if(activityRoutingStatus == null)
+        {
+            mActivityRoutingStatusMap.put(mapping.getTargetActivity(), new ActivityRoutingStatus(isDeeplink, mapping.getParentActivityHost()));
+        }
+        else
+        {
+            activityRoutingStatus.isActivityLinkedByDeeplink = true;
+        }
+
         return true;
     }
 
-    public static void linkToFragment(FragmentActivity activity, @NonNull Uri uri, @NonNull INLFragmentRoutingCallback callback)
+    public static void linkToFragment(final FragmentManager fragmentManager, @NonNull Uri uri, @NonNull INLFragmentRoutingCallback callback, final boolean linkFromActivity)
     {
         synchronized (LOCK)
         {
             if(mIsRouterActive)
             {
-                innerLinkToFragment(activity, uri, callback);
+                innerLinkToFragment(fragmentManager, uri, callback, linkFromActivity);
             }
             else
             {
-                mPendingRoutingJobs.add(new FragmentRoutingJob(activity, uri, callback));
+                mPendingRoutingJobs.add(new FragmentRoutingJob(fragmentManager, uri, callback, linkFromActivity));
             }
         }
     }
 
-    private static void innerLinkToFragment(FragmentActivity activity, @NonNull Uri uri, @NonNull INLFragmentRoutingCallback callback)
+    private static void innerLinkToFragment(FragmentManager fragmentManager, @NonNull Uri uri, @NonNull INLFragmentRoutingCallback callback, boolean linkFromActivity)
     {
-        if(activity == null) return;
+        if(fragmentManager == null) return;
 
         smartInit();
 
-        FragmentManager fm = activity.getSupportFragmentManager();
-
-        List<Fragment> addedFragmentList = fm.getFragments();
+        List<Fragment> addedFragmentList = fragmentManager.getFragments();
 
         String url = uri.toString();
 
-        for(Mapping mapping : mFragmentMappings)
+        ArrayList<Mapping> targetFragmentMappings = linkFromActivity ? mMasterFragmentMappings : mChildFragmentMappings;
+
+        for(Mapping mapping : targetFragmentMappings)
         {
             if(mapping.isMatched(url))
             {
@@ -263,22 +334,38 @@ public class DPRouter
 
     private static class FragmentRoutingJob implements Runnable
     {
-        private FragmentActivity activity;
+        private FragmentManager fragmentManager;
         private Uri uri;
         private INLFragmentRoutingCallback callback;
+        private boolean linkFromActivity;
 
-        FragmentRoutingJob(FragmentActivity activity, @NonNull Uri uri, @NonNull INLFragmentRoutingCallback callback)
+        FragmentRoutingJob(FragmentManager fragmentManager, @NonNull Uri uri, @NonNull INLFragmentRoutingCallback callback, boolean linkFromActivity)
         {
-            this.activity = activity;
+            this.fragmentManager = fragmentManager;
             this.uri = uri;
             this.callback = callback;
+            this.linkFromActivity = linkFromActivity;
         }
 
         @Override
         public void run()
         {
-            innerLinkToFragment(activity, uri, callback);
+            innerLinkToFragment(fragmentManager, uri, callback, linkFromActivity);
         }
+    }
+
+    private static class ActivityRoutingStatus
+    {
+        ActivityRoutingStatus(boolean isActivityLinkedByDeeplink, String parentActivityHost)
+        {
+            this.isActivityLinkedByDeeplink = isActivityLinkedByDeeplink;
+
+            this.parentActivityHost = parentActivityHost;
+        }
+
+        boolean isActivityLinkedByDeeplink = false;
+
+        String parentActivityHost = null;
     }
 
     public interface INLFragmentRoutingCallback

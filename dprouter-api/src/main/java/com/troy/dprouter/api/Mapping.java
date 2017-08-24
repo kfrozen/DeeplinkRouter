@@ -11,6 +11,7 @@ import java.util.Set;
 
 public class Mapping
 {
+    public static final String DPROUTER_BUNDLE_KEY_FULL_URI = "router_full_uri";
     public static final String DPROUTER_BUNDLE_KEY_HOST = "host";
     public static final String DPROUTER_BUNDLE_KEY_PATH = "path";
     public static final String DPROUTER_DEFAULT_HOST = "default";
@@ -19,13 +20,20 @@ public class Mapping
     private ArrayMap<String, String> paramsFilter = new ArrayMap<>();
     private Class<? extends Activity> targetActivity;
     private Class<? extends Fragment> targetFragment;
+    private String parentActivityHost;
 
     public Mapping(String host, Class<? extends Activity> activity, Class<? extends Fragment> fragment, ArrayMap<String, String> paramsFilter)
+    {
+        this(host, activity, fragment, paramsFilter, null);
+    }
+
+    public Mapping(String host, Class<? extends Activity> activity, Class<? extends Fragment> fragment, ArrayMap<String, String> paramsFilter, String parentHost)
     {
         this.host = host;
         this.targetActivity = activity;
         this.targetFragment = fragment;
         if(paramsFilter != null) this.paramsFilter = paramsFilter;
+        this.parentActivityHost = parentHost;
     }
 
     public final boolean isDefault()
@@ -77,6 +85,8 @@ public class Mapping
 
         Uri uri = Uri.parse(url);
 
+        extras.putParcelable(DPROUTER_BUNDLE_KEY_FULL_URI, uri);
+
         extras.putString(DPROUTER_BUNDLE_KEY_HOST, uri.getHost());
 
         String path = uri.getPath();
@@ -109,6 +119,11 @@ public class Mapping
     public String getHost()
     {
         return host;
+    }
+
+    public String getParentActivityHost()
+    {
+        return parentActivityHost;
     }
 
     public Class<? extends Activity> getTargetActivity()

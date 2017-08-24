@@ -7,7 +7,7 @@
         jumboMode="false"
         optimize="true"
         revision="25.0.2"
-        sha1="744ed5bc0f494cf7fb3547466a4df44d4a4e1960">
+        sha1="013c214721bd902b93957addecfb32d60c2e80bd">
         <dex dex="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/app/build/intermediates/pre-dexed/debug/classes_c4fd923d242731b3997b1e7deb2db6b2d37dcad6.jar" />
     </item>
     <item
@@ -21,21 +21,21 @@
     </item>
     <item
         is-multidex="false"
+        jar="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/dprouter-annotation/build/libs/dprouter-annotation-1.0.2.jar"
+        jumboMode="false"
+        optimize="true"
+        revision="25.0.2"
+        sha1="70a08c320ee77c8d0e400e04d16686fff6ddca6f">
+        <dex dex="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/app/build/intermediates/pre-dexed/debug/dprouter-annotation-1.0.2_1b189fc3a53e1b476177a5eae012968fe279b1bd.jar" />
+    </item>
+    <item
+        is-multidex="false"
         jar="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/childmodule_a/build/intermediates/bundles/default/classes.jar"
         jumboMode="false"
         optimize="true"
         revision="25.0.2"
-        sha1="b54e7c0eeb261943b7b5b32bb4fd844a3b146447">
+        sha1="5901b71c21f029bfa611e3c7899b45b87f06d3cb">
         <dex dex="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/app/build/intermediates/pre-dexed/debug/classes_ba0aec65e875ed67d5799fd0d40e556046594695.jar" />
-    </item>
-    <item
-        is-multidex="false"
-        jar="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/dprouter-annotation/build/libs/dprouter-annotation-1.0.1.jar"
-        jumboMode="false"
-        optimize="true"
-        revision="25.0.2"
-        sha1="be9a20e8746ade7bb2d5c0dd1f9a019f21a8faca">
-        <dex dex="/Users/troy/Documents/TroyGitHub/DeeplinkRouter/app/build/intermediates/pre-dexed/debug/dprouter-annotation-1.0.1_d3b7d66d3a4e92468525741c0529faef7c39d2e4.jar" />
     </item>
 
 </items>

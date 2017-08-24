@@ -13,6 +13,8 @@ import com.troy.dprouter.api.IDPRouterInterceptor;
 @Module(name = "app")
 public class RouterApplication extends Application implements IDPRouterInterceptor
 {
+    public static final String APP_SCHEME = "dprouter";
+
     @Override
     public Uri onPreRouting(Context context, Uri uri)
     {
