@@ -156,6 +156,14 @@ public class DPRouter
         return null;
     }
 
+    public static boolean linkToActivity(Context context, @NonNull Uri uri)
+    {
+        return linkToActivity(context, uri, true);
+    }
+
+    /**
+    *  @param isDeeplink true to indicate the request was made by deeplink action while false means it's a normal local navigation inside the app
+    */
     public static boolean linkToActivity(Context context, @NonNull Uri uri, boolean isDeeplink)
     {
         smartInit();
@@ -221,6 +229,12 @@ public class DPRouter
         return true;
     }
 
+    /**
+    *   @param fragmentManager the fragment manager held by the caller, should from getSupportFragmentManager() if the request was made by Activity
+     *                         and getChildFragmentManager() if it was from a master Fragment.
+     *  @param linkFromActivity true to indicate the request was made by Activity (now the fragmentManager should from getSupportFragmentManager()),
+     *                          while false to indicate it was from a master Fragment (now the fragmentManager should from getChildFragmentManager())
+    */
     public static void linkToFragment(final FragmentManager fragmentManager, @NonNull Uri uri, @NonNull INLFragmentRoutingCallback callback, final boolean linkFromActivity)
     {
         synchronized (LOCK)

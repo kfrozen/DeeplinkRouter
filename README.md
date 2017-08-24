@@ -1,6 +1,6 @@
 ## DeeplinkRouter Developers Guide ##
 
-**Version 1.0.3**
+**Version 1.0.4**
 
 - [Introduction](#introduction)
 - [Usage](#usage)
@@ -11,6 +11,7 @@
     - Multiple modules
     - Parent Activity
     - Dispatch to child Fragments
+    - Internal routing
 
 <a name="#introduction"></a>
 ## Introduction
@@ -22,9 +23,9 @@ DeeplinkRouter makes it much easier to handle deeplink flow and navigation betwe
 
 In your app module's build.gradle file
 ```
-    compile 'com.troy.deeplinkrouter:dprouter-api:1.0.3'
+    compile 'com.troy.deeplinkrouter:dprouter-api:1.0.4'
 
-    annotationProcessor 'com.troy.deeplinkrouter:dprouter-compiler:1.0.3'
+    annotationProcessor 'com.troy.deeplinkrouter:dprouter-compiler:1.0.4'
 ```
 
 **Note:** You may try the attached deeplinkRouter_test_urls.html to test the demo app, several sample links have been included.
@@ -289,6 +290,42 @@ This is to support dispatching deeplink action one step more to the child fragme
 
 To dispatch deeplink action from fragment, just follow the same way that activity does in your base fragment, please see detail usage for this in the demo: com.troy.deeplinkrouter.fragment.BaseFragment
 
-**Note that there's a little change in DPRouter.linkToFragment() method, we updated the type of the first param from FragmentActivity to FragmentManager, which means for dispatching from Activity, getSupportFragmentManager() should be applied while for dispatching from Fragment, use getChildFragmentManager().**
+**Note that there's a little change in DPRouter.linkToFragment() method, we updated the type of the first param from FragmentActivity to FragmentManager, which means for dispatching from Activity, getSupportFragmentManager() should be applied while for dispatching from Fragment, use getChildFragmentManager().
+Also, we have added an extra param called isFromActivity, please see below:**
+
+```
+    /**
+    *   @param fragmentManager the fragment manager held by the caller, should from getSupportFragmentManager() if the request was made by Activity
+     *                         and getChildFragmentManager() if it was from a master Fragment.
+     *  @param linkFromActivity true to indicate the request was made by Activity (now the fragmentManager should from getSupportFragmentManager()),
+     *                          while false to indicate it was from a master Fragment (now the fragmentManager should from getChildFragmentManager())
+    */
+    public static void linkToFragment(final FragmentManager fragmentManager, @NonNull Uri uri, @NonNull INLFragmentRoutingCallback callback, final boolean linkFromActivity)
+```
+
+- **Internal routing support**
+
+The router can actually replace the traditional startActivity(...) method to complete the internal navigation, which was quite useful for navigation between different modules.
+
+We have added a helper method in DPRouter to help you get a formatted Uri for internal routing:
+
+```
+public static Uri composeNavigationUri(String schemeString, String host, String path, ArrayMap<String, String> extras)
+{
+    ......
+}
+```
+
+After getting the Uri, you may invoke the below method to do internal routing, which can replace the traditional startActivity(...) method:
+
+```
+    /**
+    *  @param isDeeplink true to indicate the request was made by deeplink action while false means it's a normal local navigation inside the app
+    */
+    public static boolean linkToActivity(Context context, @NonNull Uri uri, boolean isDeeplink)
+    {
+        ......
+    }
+```
 
 For more integration details and usages, please refer to the demo.
